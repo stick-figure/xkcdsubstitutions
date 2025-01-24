@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .container.list {
+        width: 200px;
+        overflow-y: auto;
+      }
+      .listItem {
+        display: inline-block;
+        white-space: nowrap;
+      }
+      input.key, input.value {
+        width: 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="header">XKCD Substitutions</h1>
+    
+    <label><input name="matchWholeWord" id="matchWholeWord" type="checkbox">Match Whole Words</label>
+
+    <fieldset>
+    <legend>Replacements:</legend>
+      <div class="container list">
+        <div class="listItem">
+          <label for="fname">Replace<input type="text" name="fname" value="John" class="key"></label>
+          <label for="lname"> With <input type="text" name="lname" value="Doe" class="value"></label>
+        </div>
+        <div class="listItem">
+          <label for="fname">Replace<input type="text" name="fname" value="John" class="key"></label>
+          <label for="lname"> With <input type="text" name="lname" value="Doe" class="value"></label>
+        </div>
+        <div class="listItem">
+          <label for="fname">Replace<input type="text" name="fname" value="John" class="key"></label>
+          <label for="lname"> With <input type="text" name="lname" value="Doe" class="value"></label>
+        </div>
+      </div>
+      <input type="button" value="New Replacement">
+    </fieldset>
+    <script src="scripts/popup.js"></script>
+  </body>
+</html>

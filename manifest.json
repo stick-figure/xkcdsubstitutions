@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "XKCD Subsitutions",
+  "version": "0.001",
+  "description": "Adds subsitutions that make reading the news more fun",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "content_scripts": [
+    {
+      "js": ["scripts/content.js"],
+	  "matches": ["<all_urls>"]
+    }
+  ],
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "scripts/service-worker.js",
+    "type": "module"
+  }
+}
