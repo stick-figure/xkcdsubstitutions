@@ -57,7 +57,7 @@ const REPLACEMENTS = [
   ["gaffe"                                , "magic spell"],
   ["ancient"                              , "haunted"],
   ["star-studded"                         , "blood-soaked"],
-  ["remains? to be seen"                  , "will never be known"],
+  ["remains to be seen"                   , "will never be known"],
   ["silver bullet"                        , "way to kill werewolves"],
   ["subway system"                        , "tunnels I found"],
   ["surprising"                           , "surprising (but not to me)"],
@@ -88,7 +88,6 @@ const REPLACEMENTS = [
   ["popeye the sailor man"                , "Popeye (the Sailor Man)"],
   ["jack the ripper"                      , "Jack (the Ripper)"],
   ["battle of midway"                     , "Battle (of Midway)"],
-  //  ["(\\w+[ -]+)(the[ -]+\\w+)"            , "($2)"],
   // https://xkcd.com/2683 fan theories
   ["hypothesize"                          , "fan theorize"],
   ["hypotheses"                           , "fan theories"],
