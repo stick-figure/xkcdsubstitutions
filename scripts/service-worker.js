@@ -47,10 +47,10 @@ const REPLACEMENTS = [
   ["third degree"                         , "friggin' awful"],
   ["an unknown number"                    , "like hundreds"],
   ["frontrunner"                          , "bladerunner"],
-  ["global(ly)?"                          , "spherical"],
+  ["global"                               , "spherical"],
   ["year"                                 , "minute"],
   ["minute"                               , "year"],
-  ["no[ -]indication"                     , "lots of signs"],
+  ["no indication"                        , "lots of signs"],
   ["urged restraint by"                   , "drunkenly egged on"],
   ["horsepower"                           , "tons of horsemeat"],
   // https://xkcd.com/1679 substitutions 3
@@ -218,14 +218,14 @@ const DELUXE_REPLACEMENTS = [
 const MATCH_WHOLE_WORD = true;
 const CASE_INSENSITIVE = true;
 const AUTO_CAPITALIZE = true;
-const ESCAPE_REGEX_CHARACTERS = false;
+const ESCAPE_REGEX_CHARACTERS = true;
 const WRAP_SUBSTITUTIONS = true;
 const BLACKLIST = [];
 const REVEAL_TYPE = 1;
 const WRAPPER_PROPERTIES = "";
 
 function resetPreferences() {
-  chrome.storage.local.set({'replacements': DELUXE_REPLACEMENTS});
+  chrome.storage.local.set({'replacements': REPLACEMENTS});
   chrome.storage.local.set({'matchWholeWord': MATCH_WHOLE_WORD});
   chrome.storage.local.set({'caseInsensitive': CASE_INSENSITIVE});
   chrome.storage.local.set({'autoCapitalize': AUTO_CAPITALIZE});
