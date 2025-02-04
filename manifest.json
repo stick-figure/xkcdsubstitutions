@@ -9,17 +9,22 @@
   "content_scripts": [
     {
       "js": ["scripts/content.js"],
-	  "matches": ["<all_urls>"]
+	    "matches": ["<all_urls>"],
+      "css": ["css/tags.css"],
+      "run_at": "document_end"
     }
   ],
-  "permissions": ["storage"],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
   "background": {
     "service_worker": "scripts/service-worker.js",
     "type": "module"
   },
   "web_accessible_resources": [
     {
-      "resources": [ "fonts/xkcd-regular.otf" ],
+      "resources": [ "fonts/*" ],
       "matches": [ "<all_urls>" ]
     }    
   ]

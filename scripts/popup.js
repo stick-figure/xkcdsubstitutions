@@ -1,6 +1,8 @@
 let k = 0;
 
 let replacements;
+let currentEntry = null;
+let entryListContainer;
 
 function downloadJSON(filename, obj) {
   const blob = new Blob([JSON.stringify(obj)], { type: "text/json" });
@@ -24,6 +26,7 @@ function createReplacementEntryElement(key, value) {
   const entryElement = document.createElement("div");
   entryElement.setAttribute("id", "listItem");
   entryElement.setAttribute("class", "listItem");
+  entryElement.draggable = true;
   
   /*
   entryElement.innerHTML = `
@@ -66,20 +69,11 @@ function createReplacementEntryElement(key, value) {
   deleteEntry.setAttribute("id", "deleteEntry"+k);
 
   entryElement.appendChild(deleteEntry);
-
-  keyInput.oldvalue = "";
-  keyInput.addEventListener("focus", (event) => {
-    keyInput.oldvalue = keyInput.value;
-    console.log(keyInput.oldvalue );
-  });
+  
   keyInput.addEventListener("focusout", (event) => {
-//    if (replacements.hasOwnProperty(keyInput.value)) return;
-    
-//    delete Object.assign(replacements, {[keyInput.value]: replacements[keyInput.oldvalue] })[keyInput.oldvalue];
-    delete replacements[keyInput.oldvalue];
-    
+    let eIndex = Array.prototype.indexOf.call(entryElement.parentNode.childNodes, entryElement);
     if (keyInput.value.length == 0) {
-      delete replacements[keyInput.value];
+      replacements.splice(eIndex, 1);
       
       chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: replacements}, () => {
         entryElement.remove();
@@ -88,31 +82,27 @@ function createReplacementEntryElement(key, value) {
       
       return true;
     }
-
-    replacements[keyInput.value] = valueInput.value;
+    
+    replacements[eIndex][0] = keyInput.value;
 
     chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: replacements}, () => {
       return true;
     });
   });
-
-  valueInput.oldvalue = "";
-  valueInput.addEventListener("focus", (event) => {
-    valueInput.oldvalue = valueInput.value;
-  });
-  valueInput.addEventListener("change", (event) => {
-//    if (replacements.hasOwnProperty(valueInput.value)) return;
-    
+  
+  valueInput.addEventListener("focusout", (event) => {
     if (keyInput.value.length == 0) return;
-    replacements[keyInput.value] = valueInput.value;
-
+    let eIndex = Array.prototype.indexOf.call(entryElement.parentNode.childNodes, entryElement);
+    replacements[eIndex][1] = valueInput.value;
+    
     chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: replacements}, () => {
       return true;
     });
   });
 
   deleteEntry.addEventListener("click", (event) => {
-    delete replacements[keyInput.value];
+    let eIndex = Array.prototype.indexOf.call(entryElement.parentNode.childNodes, entryElement);
+    replacements.splice(eIndex, 1);
     
     chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: replacements}, () => {
       entryElement.remove();
@@ -126,37 +116,97 @@ function createReplacementEntryElement(key, value) {
 
 function updateReplacementEntries(listContainer) {
   listContainer.innerHTML = "";
-  for (const [key, value] of Object.entries(replacements)) {
-    let entryElement = createReplacementEntryElement(key, value);
+  for (let i=0; i<replacements.length; i++) {
+    let entryElement = createReplacementEntryElement(replacements[i][0], replacements[i][1]);
     listContainer.appendChild(entryElement);
   }
 }
 
+
 document.addEventListener("DOMContentLoaded", () => {
-  const entryListContainer = document.getElementById("entryList");
-  const matchWholeWordCheckbox = document.getElementById("matchWholeWord");
-  const caseInsensitiveCheckbox = document.getElementById("caseInsensitive");
-  const escapeRegexCharactersCheckbox = document.getElementById("escapeRegexCharacters");
-  const converseSubstitutionsCheckbox = document.getElementById("converseSubstitutions");
-  
-  chrome.runtime.sendMessage({greeting: 'getMatchWholeWord'}, (response) => {
-    matchWholeWordCheckbox.checked = response.matchWholeWord;
-    return true;
+  entryListContainer = document.getElementById("entryList");
+  entryListContainer.addEventListener("dragstart", (e) => {
+    Array.from(document.querySelectorAll(".listItem input")).forEach(item => {item.disabled = true;});
+    currentEntry = e.target;
+
+    currentEntry.classList.add("dragging");
+  });  
+  // 
+  entryListContainer.addEventListener("dragend", () => { 
+    Array.from(document.querySelectorAll(".listItem input")).forEach(item => {item.disabled = false;});
+    currentEntry.classList.remove("dragging");
+
+    currentEntry = null;
+  });
+  entryListContainer.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    Array.from(document.querySelectorAll(".listItem input")).forEach(item => {
+      item.disabled = true;
+    });
+    const afterElement = Array.from(entryListContainer.childNodes).reduce((closest, child) => {
+      child.classList.remove("hint");
+      const box = child.getBoundingClientRect();
+      const offset = e.clientY - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return {
+          offset: offset,
+          element: child};
+      } else {
+        return closest;
+      }
+    }, {offset: Number.NEGATIVE_INFINITY}).element;
+    if (afterElement) afterElement.classList.add("hint");
+    const containerBox = entryListContainer.getBoundingClientRect();
+    const offset = e.clientY - containerBox.top - containerBox.height / 2;
+    if (Math.abs(offset) > containerBox.height / 3) entryListContainer.scrollBy({ top: offset, behavior: 'smooth'});
   });
   
-  chrome.runtime.sendMessage({greeting: 'getCaseInsensitive'}, (response) => {
-    caseInsensitiveCheckbox.checked = response.caseInsensitive;
-    return true;
+  entryListContainer.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const afterElement = Array.from(entryListContainer.childNodes).reduce((closest, child) => {
+      child.classList.remove("hint");
+      const box = child.getBoundingClientRect();
+      const offset = e.clientY - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return {
+          offset: offset,
+          element: child};
+      } else {
+        return closest;
+      }
+    }, {offset: Number.NEGATIVE_INFINITY}).element;
+    currentEntry.classList.remove("hint");
+//tiojfidiofdoijoijdf
+    replacements.splice(Array.prototype.indexOf.call(entryListContainer.childNodes, currentEntry), 1);
+    if (afterElement == null) {
+      entryListContainer.appendChild(currentEntry);
+    } else {
+      afterElement.classList.remove("hint");
+      entryListContainer.insertBefore(currentEntry, afterElement);
+    }
+    replacements.splice(Array.prototype.indexOf.call(entryListContainer.childNodes, currentEntry), 0, [
+      currentEntry.getElementsByClassName("keyInput")[0].value,
+      currentEntry.getElementsByClassName("valueInput")[0].value,
+    ]);
+//tiojfidiofdoijoijdf
+    chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: replacements}, () => {
+      return true;
+    });
   });
 
-  chrome.runtime.sendMessage({greeting: 'getEscapeRegexCharacters'}, (response) => {
-    escapeRegexCharactersCheckbox.checked = response.escapeRegexCharacters;
-    return true;
-  });
-  
-  chrome.runtime.sendMessage({greeting: 'getConverseSubstitutions'}, (response) => {
-    converseSubstitutionsCheckbox.checked = response.converseSubstitutions;
-    return true;
+  chrome.windows.getCurrent(w => {
+    chrome.tabs.query({active: true, windowId: w.id}, tabs => {
+      chrome.runtime.sendMessage({greeting: 'getBlacklist'}, (response) => {
+        let tabRegex = tabs[0].url.replace(/[-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, "\\$&");
+        document.getElementById("blockThisSite").checked = response.blacklist.length > 0 && new RegExp(response.blacklist.join("|"), "gi").test(tabs[0].url);
+        if (!document.getElementById("blockThisSite").checked) return;
+        while (response.blacklist.indexOf(tabRegex) != -1) {
+          response.blacklist.splice(response.blacklist.indexOf(tabRegex), 1);
+        }
+        console.log(Array.from(tabs[0].url.matchAll(new RegExp(response.blacklist.join("|"), "gi"))));
+        document.getElementById("blockThisSite").disabled = response.blacklist.length > 0 && new RegExp(response.blacklist.join("|"), "gi").test(tabs[0].url);
+      });
+    });
   });
   
   chrome.runtime.sendMessage({greeting: 'getReplacements'}, (response) => {
@@ -165,77 +215,39 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   });
 
-  matchWholeWordCheckbox.addEventListener("change", (element) => {
-    chrome.runtime.sendMessage({greeting: 'setMatchWholeWord', matchWholeWord: element.target.checked}, () => {
-      return true;
-    });
+  document.getElementById("options").addEventListener("click", (event) => {
+    window.location.href = "options.html";
   });
-  caseInsensitiveCheckbox.addEventListener("change", (element) => {
-    chrome.runtime.sendMessage({greeting: 'setCaseInsensitive', caseInsensitive: element.target.checked}, () => {
-      return true;
-    });
-  });
-  escapeRegexCharactersCheckbox.addEventListener("change", (element) => {
-    chrome.runtime.sendMessage({greeting: 'setEscapeRegexCharacters', escapeRegexCharacters: element.target.checked}, () => {
-      return true;
-    });
-  });
-  converseSubstitutionsCheckbox.addEventListener("change", (element) => {
-    chrome.runtime.sendMessage({greeting: 'setConverseSubstitutions', converseSubstitutions: element.target.checked}, () => {
-      return true;
+
+  document.getElementById("blockThisSite").addEventListener("change", (event) => {
+    chrome.windows.getCurrent(w => {
+      chrome.tabs.query({active: true, windowId: w.id}, tabs => {
+        let tabUrl = tabs[0].url.replace(/[-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, "\\$&");
+        chrome.runtime.sendMessage({greeting: 'getBlacklist'}, (response) => {
+          let myBlacklist = response.blacklist;
+          if (event.target.checked && myBlacklist.indexOf(tabUrl) == -1) {
+            myBlacklist.push(tabUrl);
+          } else if (!event.target.checked) {
+            while (myBlacklist.indexOf(tabUrl) != -1) {
+              myBlacklist.splice(myBlacklist.indexOf(tabUrl), 1);
+            }
+          }
+          chrome.runtime.sendMessage({greeting: 'setBlacklist', blacklist: myBlacklist}, (response) => {});
+          return true;
+        });
+      });
     });
   });
   
-  document.getElementById("downloadPrefs").addEventListener("click", (event) => {
-    downloadJSON("xkcdsubstitution_preferences.json", {matchWholeWord: matchWholeWordCheckbox.checked, replacements: replacements});
-  });
-
-  document.getElementById("uploadPrefs").addEventListener("change", (event) => {
-    var reader = new FileReader();
-    function onLoadReader(readerEvent) {
-      console.log(readerEvent.target.result);
-      var jsonObj = JSON.parse(readerEvent.target.result);
-      
-      chrome.runtime.sendMessage({greeting: 'setMatchWholeWord', matchWholeWord: jsonObj.matchWholeWord}, () => {
-        return true;
-      });
-      matchWholeWordCheckbox.checked = jsonObj.matchWholeWord;
-      
-      chrome.runtime.sendMessage({greeting: 'setCaseInsensitive', caseInsensitive: jsonObj.caseInsensitive}, () => {
-        return true;
-      });
-      caseInsensitiveCheckbox.checked = jsonObj.caseInsensitive;
-      
-      chrome.runtime.sendMessage({greeting: 'setEscapeRegexCharacters', escapeRegexCharacters: jsonObj.escapeRegexCharacters}, () => {
-        return true;
-      });
-      escapeRegexCharactersCheckbox.checked = jsonObj.escapeRegexCharacters;
-      
-      chrome.runtime.sendMessage({greeting: 'setConverseSubstitutions', converseSubstitutions: jsonObj.converseSubstitutions}, () => {
-        return true;
-      });
-      converseSubstitutionsCheckbox.checked = jsonObj.converseSubstitutions;
-      
-      replacements = jsonObj.replacements;
-      chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: jsonObj.replacements}, () => {
-        return true;
-      });
-      updateReplacementEntries(entryListContainer);
-    }
-    reader.onload = onLoadReader;
-    
-    reader.readAsText(event.target.files[0]);
-  });
-
   document.getElementById("newEntry").addEventListener("click", (event) => {
-    let entryElement = createReplacementEntryElement("", "");
+    replacements.push(["", ""]);
+    let entryElement = createReplacementEntryElement(replacements[replacements.length-1][0], replacements[replacements.length-1][1]);
     entryListContainer.appendChild(entryElement);
     entryListContainer.scrollTo(0, entryListContainer.scrollHeight);
   });
   document.getElementById("clearEntries").addEventListener("click", (event) => {
-    
     entryListContainer.innerHTML = "";
-    replacements = {};
+    replacements.splice(0, replacements.length);
     chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: replacements}, () => {
       return true;
     });
@@ -243,8 +255,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("beforeunload", () => {
-  if (replacements[""] !== undefined) delete replacements[""];
-  
   chrome.runtime.sendMessage({greeting: 'setReplacements', replacements: replacements}, () => {
     return true;
   });

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      @font-face { 
+        font-family: xkcd; 
+        src: url('fonts/xkcd-Regular.otf'); 
+      } 
+      * {
+        font-family: xkcd, "Comic Sans MS", "Comic Neue", "Comic Sans", cursive;
+        text-transform: none;
+      }
+      h1, h2, #header {
+        text-transform: uppercase;
+      }
+      .container.list {
+        height: 150px;
+        overflow-y: auto;
+      }
+      .container.wrapPrefs {
+        display: block;
+        margin-left: 50px;
+      }
+      .listItem {
+        white-space: nowrap;
+      }
+      input.urlInput {
+        width: 225px;
+      }
+      input.deleteEntry {
+        color: black;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        margin-left: 5px;
+      }
+    </style>
+    <style>
+      @keyframes blinker {
+        50% {
+          opacity: 0;
+        }
+      }
+      .xkcdSubstitutions {
+        font-family: sans-serif;
+      }
+      .xkcdSubstitutions.underline {
+        text-decoration: underline;
+        text-decoration-style: dotted;
+      }
+      .xkcdSubstitutions.highlight {
+        background-color: yellow;
+        color: black;
+      }
+      .xkcdSubstitutions.code {
+        font-family: monospace;
+      }
+      .xkcdSubstitutions.xkcd {
+        font-family: xkcd, "Comic Sans MS", "Comic Neue", "Comic Sans", cursive;
+        text-transform: uppercase;
+      }
+      .xkcdSubstitutions.blink {
+        animation: blinker 1s step-start infinite;
+      }
+
+      .xkcdSubstitutions.marquee {
+        display: inline-flex;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+      }
+      .xkcdSubstitutions.marquee-content {
+        display: inline-block;
+        align-self: flex-end;
+        overflow: hidden;
+        width: max-content;
+        height: max-content;
+        -moz-transform: translateX(100%);
+        -webkit-transform: translateX(100%);
+        transform: translateX(100%);
+        -moz-animation: scroll-left 10s linear infinite;
+        -webkit-animation: scroll-left 10s linear infinite;
+        animation: scroll-left 10s linear infinite;
+      }
+      .xkcdSubstitutions.marquee-content:hover {
+        animation-play-state: paused;
+      }
+
+      @-moz-keyframes scroll-left {
+        0% {
+            -moz-transform: translateX(100%);
+        }
+        100% {
+            -moz-transform: translateX(-100%);
+        }
+      }
+
+      @-webkit-keyframes scroll-left {
+        0% {
+            -webkit-transform: translateX(100%);
+        }
+        100% {
+            -webkit-transform: translateX(-100%);
+        }
+      }
+
+      @keyframes scroll-left {
+        0% {
+            -moz-transform: translateX(100%);
+            -webkit-transform: translateX(100%);
+            transform: translateX(100%);
+        }
+        100% {
+            -moz-transform: translateX(-100%);
+            -webkit-transform: translateX(-100%);
+            transform: translateX(-100%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2 class="xkcdsubstitutions">Options</h2>
+    <div style="display: inline-block;">
+      <input type="button" id="back" value="Back">
+      <input type="button" id="resetPrefs" value="Reset Preferences">
+    </div>
+    <input type="button" id="downloadPrefs" value="Download preferences as JSON">
+    <label for="uploadPrefs">Upload preferences from JSON file<input type="file" id="uploadPrefs" name="uploadPrefs" accept=".json"></label>
+    
+    <div class="container">
+      <label for="matchWholeWord"><input name="matchWholeWord" id="matchWholeWord" type="checkbox">Match whole words</label>
+      <label for="caseInsensitive"><input name="caseInsensitive" id="caseInsensitive" type="checkbox">Case insensitive</label>
+      <label for="autoCapitalize"><input name="autoCapitalize" id="autoCapitalize" type="checkbox">Auto-capitalize</label>
+      <br />
+      <label for="escapeRegexCharacters"><input name="escapeRegexCharacters" id="escapeRegexCharacters" type="checkbox">Escape regex characters (i.e. <kbd>.*+?^${}()|[]\</kbd>)</label>
+      <br />
+      <label for="wrapSubstitutions"><input name="wrapSubstitutions" id="wrapSubstitutions" type="checkbox">Wrap substitutions</label>
+      <div class="container wrapPrefs">
+        <label for="revealType">Reveal original text</label>
+        <select name="revealType" id="revealType">
+          <option value="0">never</option>
+          <option value="1">with tooltip</option>
+          <option value="2">on mouse over</option>
+          <option value="3">keep original text</option>
+        </select>
+        <br />
+        <label>Wrapper properties:</label>
+        <label for="underline"><input name="underline" class="wrapProps" type="checkbox"><span  class="xkcdSubstitutions underline">Underline</span></label>
+        <label for="code"><input name="code" class="wrapProps" type="checkbox"><code  class="xkcdSubstitutions code">Code</code></label>
+        <label for="highlight"><input name="highlight" class="wrapProps" type="checkbox"><span  class="xkcdSubstitutions highlight">Highlight</span></label>
+        <label for="xkcd"><input name="xkcd" class="wrapProps" type="checkbox"><span class="xkcdSubstitutions xkcd">XKCD</span></label>
+        <label for="blink"><input name="blink" class="wrapProps" type="checkbox"><span class="xkcdSubstitutions blink">Blink</span></label>
+        <label for="marquee"><input name="marquee" class="wrapProps" type="checkbox"><span class="xkcdSubstitutions marquee"><span class="xkcdSubstitutions marquee-content">Marquee</span></span></label>
+      </div>
+    </div>
+    <fieldset>
+      <legend>Blacklist:</legend>
+      <div id="blacklist" class="container list">
+        
+      </div>
+      <input type="button" id="newEntry" value="Add Site To Blacklist">
+      <input type="button" id="clearEntries" value="Clear All Websites">
+    </fieldset>
+    <script src="scripts/options.js"></script>
+  </body>
+</html>
